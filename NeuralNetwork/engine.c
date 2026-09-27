@@ -312,10 +312,10 @@ void trainNeuralNetwork(NeuralNetwork * restrict nn, const Matrix * restrict xTr
 		}
 
 		if((epoch + 1) % 10 == 0){ 
-			printf("Epoch %u\n", epoch + 1); 
+			LOG(LOG_INFO, "Epoch %u", epoch + 1); 
 			fflush(stdout);
 	}
 }
 
-	printf("\nTraining Complete!\n");
+	LOG(LOG_INFO, "\nTraining Complete!");
 }

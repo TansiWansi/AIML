@@ -5,17 +5,15 @@ Arena *arenaInit(const size_t capacityBytes){
 	
 	Arena *a = (Arena *)malloc(sizeof(Arena));
     if (a == NULL) {
-        printf("FATAL : Failed to allocate Arena struct\n");
+        LOG_EXT(1, 1, LOG_FATAL, "Failed to allocate Arena struct");
         exit(1);
     }	
 
-	*a = (Arena){
-		.capacity = capacityBytes,
-		.offset = 0
-	};
+	a->capacity = capacityBytes;
+	a->offset = 0;
 	
 	if(posix_memalign((void **)&(a->buffer), ALIGNMENT, capacityBytes) != 0){
-		printf("FATAL : Failed to allocate Arena");
+		LOG_EXT(1, 1, LOG_FATAL, "Failed to allocate Arena");
 		exit(1);
 	}
 	
@@ -24,11 +22,12 @@ Arena *arenaInit(const size_t capacityBytes){
 
 void *arenaAlloc(Arena * restrict a, const size_t sizeBytes){
 	
-	size_t alignedOffset = (a->offset + (ALIGNMENT - 1) & ~(ALIGNMENT - 1));
+	size_t alignedOffset = (a->offset + (ALIGNMENT - 1) & ~((size_t)(ALIGNMENT - 1)));
 
 	if(alignedOffset + sizeBytes > a->capacity){
-		printf("FATAL : Arena out of memory\nRequired : %zu\nCapacity : %zu\n", 
-		alignedOffset + sizeBytes, a->capacity);
+		LOG_EXT(1, 1, LOG_FATAL, "Arena out of memory | Required : %llu | Capacity : %llu", 
+		(unsigned long long)(alignedOffset + sizeBytes),
+		(unsigned long long)a->capacity);
 		exit(1);
 	}
 

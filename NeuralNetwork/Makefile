@@ -18,7 +18,7 @@ $(TARGET): $(SRCS) $(HEADERS)
 
 # 5. Compile AND Run Python
 run: $(TARGET)
-	@echo "Launching Python Pipeline"
+	@echo "Executing Python"
 	python3 $(PYTHON_SCRIPT)
 
 # 6. Cleanup

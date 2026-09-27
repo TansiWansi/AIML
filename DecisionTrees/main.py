@@ -15,13 +15,10 @@ def main():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    print("[main.py] : Initializing C-backed Decision Tree (maxDepth=5, minSamplesSplit=2)")
     clf = DecisionTree(maxDepth=5, minSamplesSplit=2)
     
-    print("[main.py] : Fitting model via C engine")
     clf.fit(X_train, y_train)
     
-    print("[main.py] : Executing predictions via C engine")
     y_pred = clf.predict(X_test)
     
     accuracy = accuracy_score(y_test, y_pred)

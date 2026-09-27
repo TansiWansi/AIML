@@ -57,7 +57,7 @@ Matrix *matScale(const f32 scaleFactor, const Matrix * restrict A, Matrix * rest
 Matrix *matDot(const Matrix * restrict A, const Matrix * restrict B, Matrix * restrict result) {
     
     if(A->data == NULL || B->data == NULL || result->data == NULL){
-        LOG_EXT(0, 1, LOG_FATAL, "NULL data pointer!");
+        LOG_EXT(LOG_FILE, LOG_FATAL, "NULL data pointer!");
         exit(1);
     }
 
@@ -102,7 +102,7 @@ Matrix *matAdd(const Matrix * restrict A, const Matrix * restrict B, Matrix * re
         }
     } 
 	else{
-        LOG_EXT(0, 1, LOG_FATAL, "Mismatch : A(%u, %u) + B(%u, %u)", A->rows, A->cols, B->rows, B->cols);
+        LOG_EXT(LOG_FILE, LOG_FATAL, "Mismatch : A(%u, %u) + B(%u, %u)", A->rows, A->cols, B->rows, B->cols);
         exit(1);
     }
     return result;

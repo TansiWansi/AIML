@@ -8,6 +8,12 @@
 #include <errno.h>
 #include <unistd.h>
 
+// --- BITWISE METADATA TOGGLE FLAGS ---
+#define LOG_NONE   0x00
+#define LOG_THREAD 0x01
+#define LOG_FILE   0x02
+#define LOG_TAG    0x04
+
 typedef enum {
     LOG_INFO,
     LOG_DEBUG,
@@ -30,6 +36,10 @@ typedef enum {
 #define COLOR_TAG      "\x1b[35m"   // Magenta for custom string tags
 
 #define stdlog stderr
+
+#ifndef LOG_TAG_NAME
+#define LOG_TAG_NAME "MODULE"
+#endif
 
 typedef struct {
     const char *color;
@@ -55,7 +65,7 @@ static inline const char* _log_get_filename(const char* filepath) {
     return filename ? filename + 1 : filepath;
 }
 
-static inline void _impl_printLog(FILE *stream, const char *file_path, int line, bool show_thread, bool show_file_line, const char *tag, int current_errno, const LogColor logLevel, const char *restrict format, ...) {
+static inline void _impl_printLog(FILE *stream, const char *file_path, int line, int flags, int current_errno, const LogColor logLevel, const char *restrict format, ...) {
     if (logLevel < 0 || logLevel >= NUMBER_LOGS) return;
 
     va_list args;
@@ -66,27 +76,27 @@ static inline void _impl_printLog(FILE *stream, const char *file_path, int line,
 
     flockfile(stream);
 
-    // 1. Output Metadata Prefix Tags
+    // 1. Output Metadata Prefix Tags based on active bitmask bits
     if (is_terminal) {
-        if (show_thread) {
+        if (flags & LOG_THREAD) {
             fprintf(stream, "%s[P:%d]%s ", COLOR_THREAD, (int)getpid(), COLOR_RESET);
         }
-        if (show_file_line) {
+        if (flags & LOG_FILE) {
             fprintf(stream, "%s[%s:%d]%s ", COLOR_MODULE, filename, line, COLOR_RESET);
         }
-        if (tag != NULL && strlen(tag) > 0) {
-            fprintf(stream, "%s[%s]%s ", COLOR_TAG, tag, COLOR_RESET);
+        if (flags & LOG_TAG) {
+            fprintf(stream, "%s[%s]%s ", COLOR_TAG, LOG_TAG_NAME, COLOR_RESET);
         }
         fprintf(stream, "%s[%s]%s : ", logs[logLevel].color, logs[logLevel].name, COLOR_RESET);
     } else {
-        if (show_thread) {
+        if (flags & LOG_THREAD) {
             fprintf(stream, "[P:%d] ", (int)getpid());
         }
-        if (show_file_line) {
+        if (flags & LOG_FILE) {
             fprintf(stream, "[%s:%d] ", filename, line);
         }
-        if (tag != NULL && strlen(tag) > 0) {
-            fprintf(stream, "[%s] ", tag);
+        if (flags & LOG_TAG) {
+            fprintf(stream, "[%s] ", LOG_TAG_NAME);
         }
         fprintf(stream, "[%s] : ", logs[logLevel].name);
     }
@@ -107,29 +117,19 @@ static inline void _impl_printLog(FILE *stream, const char *file_path, int line,
 }
 
 // -------------------------------------------------------------------------
-// COMPILER MACRO LOGIC ROUTER
+// MACRO DEFINITIONS (Handles Debug tier stripping and flag routing)
 // -------------------------------------------------------------------------
 #ifdef NDEBUG
-    #define _LOG_SELECT(show_thread, show_file_line, tag, level, fmt, ...) \
-        do { if ((level) != LOG_DEBUG) { _impl_printLog(stdlog, __FILE__, __LINE__, show_thread, show_file_line, tag, errno, level, fmt, ##__VA_ARGS__); } } while (0)
+    #define LOG(level, fmt, ...) \
+        do { if ((level) != LOG_DEBUG) { _impl_printLog(stdlog, __FILE__, __LINE__, LOG_NONE, errno, level, fmt, ##__VA_ARGS__); } } while (0)
+
+    #define LOG_EXT(flags, level, fmt, ...) \
+        do { if ((level) != LOG_DEBUG) { _impl_printLog(stdlog, __FILE__, __LINE__, flags, errno, level, fmt, ##__VA_ARGS__); } } while (0)
 #else
-    #define _LOG_SELECT(show_thread, show_file_line, tag, level, fmt, ...) \
-        _impl_printLog(stdlog, __FILE__, __LINE__, show_thread, show_file_line, tag, errno, level, fmt, ##__VA_ARGS__)
+    #define LOG(level, fmt, ...) \
+        _impl_printLog(stdlog, __FILE__, __LINE__, LOG_NONE, errno, level, fmt, ##__VA_ARGS__)
+
+    #define LOG_EXT(flags, level, fmt, ...) \
+        _impl_printLog(stdlog, __FILE__, __LINE__, flags, errno, level, fmt, ##__VA_ARGS__)
 #endif
-
-// Positional selection helpers to parse tag string vs log level integer
-#define _LOG_GET_7TH_ARG(arg1, arg2, arg3, arg4, arg5, arg6, arg7, ...) arg7
-#define _LOG_EXT_CHOOSER(...) _LOG_GET_7TH_ARG(__VA_ARGS__, _LOG_SELECT, _LOG_SELECT, _LOG_SELECT, _LOG_SELECT, _LOG_SELECT, _LOG_SELECT)
-
-// -------------------------------------------------------------------------
-// PUBLIC CONSOLE LOGGING INTERFACES
-// -------------------------------------------------------------------------
-
-// Standard fast log: Hides threads, filenames, and line numbers by default
-#define LOG(level, fmt, ...) \
-    _LOG_SELECT(false, false, NULL, level, fmt, ##__VA_ARGS__)
-
-// Extended log: LOG_EXT(show_thread, show_file_line, [tag], level, fmt, ...)
-#define LOG_EXT(show_thread, show_file_line, arg3, ...) \
-    _LOG_EXT_CHOOSER(show_thread, show_file_line, arg3, ##__VA_ARGS__)(show_thread, show_file_line, _Generic((arg3), char*: arg3, const char*: arg3, default: NULL), _Generic((arg3), char*: __VA_ARGS__, const char*: __VA_ARGS__, default: arg3, ##__VA_ARGS__))
 

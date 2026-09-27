@@ -52,7 +52,7 @@ i32 buildTreeRecursive(DecisionTree * restrict tree, const f32 * restrict X, con
 	}
 	if(!tree){
 		LOG(LOG_FATAL, "Tree not initialized!");
-		exit(1);_
+		exit(1);
 	}
 	if(ctx->count == 0) return -1;
 	

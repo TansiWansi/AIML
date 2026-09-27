@@ -17,7 +17,7 @@ $(TARGET): $(SRCS) $(HEADERS)
 	@echo "Successfully built $(TARGET)"
 
 run: $(TARGET)
-	@echo "Launching Python Pipeline"
+	@echo "Executing Python"
 	python3 $(PYTHON_SCRIPT)
 
 # 5. Cleanup

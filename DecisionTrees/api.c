@@ -6,7 +6,7 @@ DecisionTree *fit(const f32 * restrict X, const i32 * restrict y, const u32 numS
 
     // Hard guard against register shifts
     if (maxDepth > 30) {
-        LOG_EXT(0, 1, LOG_FATAL, "Max depth is astronomically high (%u). ABI is corrupted!", maxDepth);
+        LOG_EXT(LOG_FILE, LOG_FATAL, "Max depth is astronomically high (%u). ABI is corrupted!", maxDepth);
         exit(1);
     }
 	

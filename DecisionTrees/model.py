@@ -37,7 +37,6 @@ class DecisionTree:
 
 	def fit(self, X, y):
 		
-		print("[model.py] : Inside fit(X, y)")
 		Xc = np.ascontiguousarray(X, dtype=np.float32)
 		yc = np.ascontiguousarray(y, dtype=np.int32)
 		
@@ -45,12 +44,6 @@ class DecisionTree:
 		numSamples, numFeatures = Xc.shape
 		numClasses = len(np.unique(yc))
 		
-		print("[model.py] : Passing to C")
-		print(f"numSamples     : {numSamples}")
-		print(f"numFeatures    : {numFeatures}")
-		print(f"numClasses     : {numClasses}")
-		print(f"maxDepth       : {self.maxDepth}")
-		print(f"minSampleSplit : {self.minSamplesSplit}")
 		self.treePtr = lib.fit(
 			Xc, yc, 
 			ct.c_uint32(numSamples), 
@@ -59,8 +52,6 @@ class DecisionTree:
 			ct.c_uint32(self.maxDepth), 
 			ct.c_uint32(self.minSamplesSplit)
 		)
-		print("[model.py] : Back from C into fit")
-		print("[model.py] : End of fit")
 
 
 	def predict(self, X):

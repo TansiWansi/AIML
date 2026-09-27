@@ -6,7 +6,7 @@ DecisionTree *initTree(const u32 maxDepth, const u32 minSamplesSplit){
 
 	DecisionTree *tree = (DecisionTree *)malloc(sizeof(DecisionTree));
 	if(!tree){
-		printf("FATAL : Failed to allocate tree\n");
+		LOG(LOG_FATAL, "Failed to allocate tree");
 		exit(1);
 	}
 
@@ -18,7 +18,7 @@ DecisionTree *initTree(const u32 maxDepth, const u32 minSamplesSplit){
 	tree->nodes = (TreeNode *)malloc(tree->maxNodes * sizeof(TreeNode));
 
 	if(!tree->nodes){
-		printf("FATAL : Failed to allocate tree\n");
+		LOG(LOG_FATAL, "Failed to allocate tree nodes\n");
 		free(tree);
 		exit(1);
 	}

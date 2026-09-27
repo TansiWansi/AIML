@@ -45,7 +45,15 @@ static i32 getMajorityClass(const i32 * restrict y, const u32 * restrict indices
 
 
 i32 buildTreeRecursive(DecisionTree * restrict tree, const f32 * restrict X, const i32 * restrict y, const u32 * restrict indices, BuildContext * restrict ctx){
-	
+
+	if(!ctx){
+		LOG(LOG_ERROR, "No build context provided");
+		exit(1);
+	}
+	if(!tree){
+		LOG(LOG_FATAL, "Tree not initialized!");
+		exit(1);_
+	}
 	if(ctx->count == 0) return -1;
 	
 

@@ -8,6 +8,7 @@
 #include <cblas.h>
 #include <string.h>
 #include "mathlib.h"
+#include "../logging.h"
 
 
 typedef struct DenseLayer{

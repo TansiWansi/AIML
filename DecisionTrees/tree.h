@@ -6,6 +6,7 @@
 #include <stdio.h>	
 #include <math.h>	
 #include "../arena.h"
+#include "../logging.h"
 
 #define u32 uint32_t
 #define i32 int32_t 

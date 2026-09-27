@@ -1,15 +1,9 @@
-# ==========================================
-# C-Engine Makefile
-# ==========================================
-
-# 1. Compiler and Flags
 CC = gcc
-CFLAGS = -O3 -march=native -ffast-math -fPIC -shared
+CFLAGS = -O3 -march=native -ffast-math -fPIC -shared -I../
 LDFLAGS = -lopenblas -lm
 
-# 2. Files
-SRCS = engine.c mathlib.c arena.c api.c
-HEADERS = engine.h mathlib.h arena.h
+SRCS = engine.c mathlib.c api.c ../arena.c
+HEADERS = engine.h mathlib.h ../arena.h
 TARGET = libengine.so
 PYTHON_SCRIPT = main.py
 
@@ -29,7 +23,7 @@ run: $(TARGET)
 
 # 6. Cleanup
 clean:
-	rm -f $(TARGET) *.bin
+	rm -f $(TARGET) *.bin *.png
 	@echo "Cleaned up compiled binaries"
 
 # Mark these targets as commands, not files

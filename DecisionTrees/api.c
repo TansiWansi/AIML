@@ -1,11 +1,12 @@
 #include "tree.h"
 #include "../arena.h"
+#include "../logging.h"
 
 DecisionTree *fit(const f32 * restrict X, const i32 * restrict y, const u32 numSamples, const u32 numFeatures, const u32 numClasses, const u32 maxDepth, const u32 minSamplesSplit){
 
     // Hard guard against register shifts
     if (maxDepth > 30) {
-        printf("FATAL: max_depth is astronomically high (%u). ABI is corrupted!\n", maxDepth);
+        LOG_EXT(0, 1, LOG_FATAL, "Max depth is astronomically high (%u). ABI is corrupted!", maxDepth);
         exit(1);
     }
 	

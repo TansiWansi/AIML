@@ -8,7 +8,7 @@
 Matrix *createMatrix(const u32 rows, const u32 cols) {
     Matrix *m = (Matrix *)malloc(sizeof(Matrix));
     if(m == NULL) {
-        printf("FATAL : Matrix allocation failed\n");
+        LOG(LOG_FATAL, "Matrix allocation failed");
         exit(1);
     }
     *m = (Matrix){
@@ -18,7 +18,7 @@ Matrix *createMatrix(const u32 rows, const u32 cols) {
         .data = (f32 *)calloc(rows * cols, sizeof(f32))
     };
     if(m->data == NULL){
-        printf("FATAL : Matrix data initialization failed\n");
+        LOG(LOG_FATAL, "Matrix data initialization failed");
         exit(1);
     }
     return m;
@@ -26,8 +26,8 @@ Matrix *createMatrix(const u32 rows, const u32 cols) {
 
 void freeMatrix(Matrix *m) {
     // DO NOT free if the memory belongs to Python (MAT_VIEW)
-    if(m) {
-        if(m->data && !(m->flags & MAT_VIEW)) { 
+    if(m){
+        if(m->data && !(m->flags & MAT_VIEW)){ 
             free(m->data); 
         }
         free(m);
@@ -56,6 +56,10 @@ Matrix *matScale(const f32 scaleFactor, const Matrix * restrict A, Matrix * rest
 
 Matrix *matDot(const Matrix * restrict A, const Matrix * restrict B, Matrix * restrict result) {
     
+    if(A->data == NULL || B->data == NULL || result->data == NULL){
+        LOG_EXT(0, 1, LOG_FATAL, "NULL data pointer!");
+        exit(1);
+    }
 
     CBLAS_TRANSPOSE transA = (A->flags & MAT_TRANSPOSED) ? CblasTrans : CblasNoTrans;
     CBLAS_TRANSPOSE transB = (B->flags & MAT_TRANSPOSED) ? CblasTrans : CblasNoTrans;
@@ -67,12 +71,6 @@ Matrix *matDot(const Matrix * restrict A, const Matrix * restrict B, Matrix * re
     u32 lda = A->cols;
     u32 ldb = B->cols;
     u32 ldc = result->cols;
-
-    if (A->data == NULL || B->data == NULL || result->data == NULL) {
-        printf("[FATAL] matDot received a NULL data pointer!\n");
-        exit(1);
-    }
-
 
     cblas_sgemm(
         CblasRowMajor, transA, transB, 
@@ -90,19 +88,21 @@ Matrix *matDot(const Matrix * restrict A, const Matrix * restrict B, Matrix * re
 Matrix *matAdd(const Matrix * restrict A, const Matrix * restrict B, Matrix * restrict result) {
 
 	
-    if (B->rows == 1 && B->cols == A->cols) {
-        for(u32 i = 0; i < A->rows; i++) {
-            for(u32 j = 0; j < A->cols; j++) {
+    if (B->rows == 1 && B->cols == A->cols){
+        for(u32 i = 0; i < A->rows; i++){
+            for(u32 j = 0; j < A->cols; j++){
                 result->data[i * A->cols + j] = A->data[i * A->cols + j] + B->data[j];
             }
         }
-    } else if (A->rows == B->rows && A->cols == B->cols) {
+    } 
+	else if(A->rows == B->rows && A->cols == B->cols){
         u32 total = A->rows * A->cols;
-        for(u32 i = 0; i < total; i++) {
+        for(u32 i = 0; i < total; i++){
             result->data[i] = A->data[i] + B->data[i];
         }
-    } else {
-        printf("\n[FATAL] matAdd Mismatch: A(%u, %u) + B(%u, %u)\n", A->rows, A->cols, B->rows, B->cols);
+    } 
+	else{
+        LOG_EXT(0, 1, LOG_FATAL, "Mismatch : A(%u, %u) + B(%u, %u)", A->rows, A->cols, B->rows, B->cols);
         exit(1);
     }
     return result;
@@ -111,9 +111,9 @@ Matrix *matAdd(const Matrix * restrict A, const Matrix * restrict B, Matrix * re
 Matrix *matColSum(const Matrix * restrict A, Matrix * restrict result) {
 
 
-    for(u32 j = 0; j < A->cols; j++) {
+    for(u32 j = 0; j < A->cols; j++){
         f32 sum = 0.0f;
-        for(u32 i = 0; i < A->rows; i++) {
+        for(u32 i = 0; i < A->rows; i++){
             sum += A->data[i * A->cols + j];
         }
         result->data[j] = sum;

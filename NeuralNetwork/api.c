@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "engine.h"
+#include "../logging.h"
 
 Arena *persistantArena;
 Arena *scratchArena;
@@ -37,7 +38,7 @@ void initEngine(u32 * restrict layerSizes, const u32 numLayers, const f32 l2lamb
 void train(f32 * restrict xRaw, f32 * restrict yRaw, const u32 rows, const u32 xCols, const u32 yCols, const u32 epochs, const f32 lr, const u32 batchSize){
 	
 	if(!nn){
-		printf("Neural Network not initialized!\n");
+		LOG(LOG_FATAL, "Neural Network not initialized!");
 		return;
 	}
 
@@ -56,11 +57,14 @@ void cleanupEngine(void){
 
 void saveWeights(const char *filepath){
 	
-	if(!nn){ printf("Engine not initialized!\n"); return; }
+	if(!nn){ 
+		LOG(LOG_FATAL, "Engine not initialized!"); 
+		return; 
+	}
 
 	FILE *f = fopen(filepath, "wb");
 	if(!f){
-		printf("File could not be opened!\n");
+		LOG(LOG_ERROR, "File could not be opened!");
 		return;
 	}
 
@@ -79,17 +83,20 @@ void saveWeights(const char *filepath){
 	}
 
 	fclose(f);
-	printf("Model weights saved to %s\n", filepath);
+	LOG(LOG_INFO, "Model weights saved to %s", filepath);
 }
 
 
 void loadWeights(const char *filepath){
 	
-	if(!nn){ printf("Engine not initialized!\n"); return; }
+	if(!nn){ 
+		LOG(LOG_ERROR, "Engine not initialized!");
+		return; 
+	}
 
 	FILE *f = fopen(filepath, "rb");
 	if(!f){
-		printf("File could not be opened!\n");
+		LOG(LOG_ERROR, "File could not be opened!\n");
 		return;
 	}
 
@@ -105,26 +112,26 @@ void loadWeights(const char *filepath){
 			// 1. Read and verify weights
    		 	size_t wRead = fread(dl->w->data, sizeof(f32), wSize, f);
    		 	if (wRead != wSize) {
-    		    fprintf(stderr, "FATAL: Failed to read weights! Expected %u elements, but got %lu.\n", wSize, wRead);
+    		    LOG(LOG_FATAL, "Failed to read weights! Expected %u elements, but got %lu.", wSize, wRead);
     		    exit(1);
     		}
 	
    			 // 2. Read and verify biases
     		size_t bRead = fread(dl->b->data, sizeof(f32), bSize, f);
     		if (bRead != bSize) {
-    	  	  fprintf(stderr, "FATAL: Failed to read biases! Expected %u elements, but got %lu.\n", bSize, bRead);
+    	  	  	LOG(LOG_FATAL, "Failed to read biases! Expected %u elements, but got %lu.", bSize, bRead);
     		    exit(1);
     		}
 		}
 	}
 
 	fclose(f);
-	printf("Model weights loaded from %s\n", filepath);
+	LOG(LOG_INFO, "Model weights loaded from %s", filepath);
 }
 
 void predict(f32 *x_raw, f32 *y_pred_raw, u32 rows, u32 x_cols, u32 y_cols) {
     if (nn == NULL) {
-        printf("FATAL: C Engine not initialized!\n");
+        LOG(LOG_FATAL, "C Engine not initialized!");
         return;
     }
 
